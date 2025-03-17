@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { Drop, Clock, Plus, X } from "lucide-react";
+import { Droplets, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/hooks/use-toast";
@@ -158,7 +158,7 @@ export function RecurringReminders() {
   const getIcon = (iconType: 'water' | 'meeting' | 'custom') => {
     switch (iconType) {
       case 'water':
-        return <Drop className="h-4 w-4" />;
+        return <Droplets className="h-4 w-4" />;
       case 'meeting':
         return <Clock className="h-4 w-4" />;
       default:
@@ -244,7 +244,7 @@ export function RecurringReminders() {
                         size="sm" 
                         onClick={() => setNewIcon('water')}
                       >
-                        <Drop className="h-4 w-4 mr-1" />
+                        <Droplets className="h-4 w-4 mr-1" />
                         Water
                       </Button>
                       <Button 
