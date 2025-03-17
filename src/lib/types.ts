@@ -4,4 +4,5 @@ export interface Todo {
   text: string;
   completed: boolean;
   createdAt: Date;
+  reminder?: Date; // Optional reminder time
 }

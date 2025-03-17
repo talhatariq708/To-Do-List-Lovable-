@@ -9,6 +9,7 @@ interface TodoContextType {
   toggleTodo: (id: string) => void;
   deleteTodo: (id: string) => void;
   clearCompletedTodos: () => void;
+  updateTodoReminder: (id: string, reminderTime: Date | null) => void;
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined);
@@ -20,7 +21,8 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         return JSON.parse(savedTodos).map((todo: any) => ({
           ...todo,
-          createdAt: new Date(todo.createdAt)
+          createdAt: new Date(todo.createdAt),
+          reminder: todo.reminder ? new Date(todo.reminder) : undefined
         }));
       } catch (e) {
         console.error("Failed to parse todos from localStorage", e);
@@ -81,12 +83,31 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+  const updateTodoReminder = (id: string, reminderTime: Date | null) => {
+    setTodos(prev => 
+      prev.map(todo => 
+        todo.id === id 
+          ? { ...todo, reminder: reminderTime || undefined } 
+          : todo
+      )
+    );
+    
+    if (reminderTime) {
+      const todoText = todos.find(todo => todo.id === id)?.text;
+      toast({
+        title: "Reminder set",
+        description: `You'll be reminded about "${todoText}" at ${reminderTime.toLocaleTimeString()}`,
+      });
+    }
+  };
+
   const value = {
     todos,
     addTodo,
     toggleTodo,
     deleteTodo,
     clearCompletedTodos,
+    updateTodoReminder,
   };
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>;

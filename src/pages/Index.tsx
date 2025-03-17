@@ -2,6 +2,7 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TodoApp } from "@/components/TodoApp";
+import { RecurringReminders } from "@/components/RecurringReminder";
 
 const Index = () => {
   return (
@@ -12,7 +13,10 @@ const Index = () => {
             <h1 className="animate-in fade-in slide-in-from-left duration-500 text-2xl font-bold">
               To-Do List
             </h1>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <RecurringReminders />
+              <ThemeToggle />
+            </div>
           </header>
           
           <main className="mx-auto max-w-2xl">
