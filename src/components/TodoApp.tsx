@@ -4,6 +4,7 @@ import { TodoList } from "@/components/TodoList";
 import { TodoStats } from "@/components/TodoStats";
 import { TodoProvider } from "@/components/TodoContext";
 import { TodoReminder } from "@/components/TodoReminder";
+import { Toaster } from "sonner";
 
 export function TodoApp() {
   return (
@@ -16,6 +17,7 @@ export function TodoApp() {
         <TodoList />
         <TodoStats />
       </div>
+      <Toaster richColors position="top-right" />
     </TodoProvider>
   );
 }

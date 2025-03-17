@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Droplets, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { 
   AlertDialog, 
@@ -50,6 +50,7 @@ export function RecurringReminders() {
   const [newInterval, setNewInterval] = useState("10");
   const [newIcon, setNewIcon] = useState<'water' | 'meeting' | 'custom'>('water');
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [checkingReminders, setCheckingReminders] = useState(false);
 
   // Save reminders to localStorage
   useEffect(() => {
@@ -58,45 +59,62 @@ export function RecurringReminders() {
 
   // Check for due reminders
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
+    if (checkingReminders) return; // Prevent concurrent checks
+
+    const checkInterval = setInterval(() => {
+      setCheckingReminders(true);
       
-      setReminders(prev => 
-        prev.map(reminder => {
+      const now = new Date();
+      let updatedReminders = false;
+      
+      setReminders(prev => {
+        const newReminders = prev.map(reminder => {
           if (!reminder.enabled) return reminder;
           
-          const lastTriggered = reminder.lastTriggered || new Date(0);
+          const lastTriggered = reminder.lastTriggered ? new Date(reminder.lastTriggered) : new Date(0);
           const millisSinceLastTrigger = now.getTime() - lastTriggered.getTime();
           const minutesSinceLastTrigger = millisSinceLastTrigger / (1000 * 60);
           
           if (minutesSinceLastTrigger >= reminder.intervalMinutes) {
             // Trigger notification
-            toast({
-              title: reminder.title,
+            toast(reminder.title, {
               description: reminder.message,
-              className: "animate-bounce",
+              duration: 5000, // Show toast for 5 seconds only
             });
             
+            updatedReminders = true;
             return { ...reminder, lastTriggered: now };
           }
           
           return reminder;
-        })
-      );
+        });
+
+        if (updatedReminders) {
+          return newReminders;
+        }
+        return prev;
+      });
+      
+      setCheckingReminders(false);
     }, 10000); // Check every 10 seconds
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(checkInterval);
+      setCheckingReminders(false);
+    };
   }, []);
 
   const addReminder = () => {
     if (!newTitle.trim() || !newMessage.trim() || !newInterval.trim()) return;
     
+    const now = new Date();
     const newReminder: RecurringReminder = {
       id: crypto.randomUUID(),
       title: newTitle,
       message: newMessage,
       intervalMinutes: parseInt(newInterval),
       icon: newIcon,
+      lastTriggered: now, // Set initial trigger time to now
       enabled: true
     };
     
@@ -109,29 +127,37 @@ export function RecurringReminders() {
     setNewIcon('water');
     setIsAddingNew(false);
     
-    toast({
-      title: "Recurring Reminder Added",
+    toast("Recurring Reminder Added", {
       description: `You'll be reminded every ${newInterval} minutes`,
+      duration: 3000,
     });
   };
 
   const toggleReminder = (id: string) => {
     setReminders(prev => 
-      prev.map(reminder => 
-        reminder.id === id 
-          ? { ...reminder, enabled: !reminder.enabled } 
-          : reminder
-      )
+      prev.map(reminder => {
+        if (reminder.id === id) {
+          // If enabling a disabled reminder, update lastTriggered to now
+          if (!reminder.enabled) {
+            return { 
+              ...reminder, 
+              enabled: true,
+              lastTriggered: new Date() 
+            };
+          }
+          return { ...reminder, enabled: false };
+        }
+        return reminder;
+      })
     );
   };
 
   const deleteReminder = (id: string) => {
     setReminders(prev => prev.filter(reminder => reminder.id !== id));
     
-    toast({
-      title: "Reminder Deleted",
+    toast("Reminder Deleted", {
       description: "The recurring reminder has been removed",
-      variant: "destructive",
+      duration: 3000,
     });
   };
 
